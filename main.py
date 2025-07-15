@@ -12,6 +12,7 @@ class FileMagicApp:
 
         self.files = []
         self.target_format = tk.StringVar()
+        self.file_label = tk.StringVar(value="Keine Dateien ausgewählt")
 
         self.tabs = ttk.Notebook(root)
         self.tabs.pack(expand=True, fill="both")
@@ -33,25 +34,27 @@ class FileMagicApp:
         format_menu.grid(row=0, column=2, padx=5)
         format_menu.current(0)
 
+        ttk.Label(frame, textvariable=self.file_label).grid(row=1, column=0, columnspan=3, pady=5)
+
         return frame
 
     def setup_audio_tab(self):
         tab = ttk.Frame(self.tabs)
         self.tabs.add(tab, text="🎧 Audio")
         frame = self.setup_tab_common(tab, audio.ALLOWED_OUTPUTS)
-        ttk.Button(frame, text="Konvertieren", command=self.convert_audio).grid(row=1, column=0, columnspan=3, pady=10)
+        ttk.Button(frame, text="Konvertieren", command=self.convert_audio).grid(row=2, column=0, columnspan=3, pady=10)
 
     def setup_video_tab(self):
         tab = ttk.Frame(self.tabs)
         self.tabs.add(tab, text="🎬 Video")
         frame = self.setup_tab_common(tab, video.ALLOWED_OUTPUTS)
-        ttk.Button(frame, text="Konvertieren", command=self.convert_video).grid(row=1, column=0, columnspan=3, pady=10)
+        ttk.Button(frame, text="Konvertieren", command=self.convert_video).grid(row=2, column=0, columnspan=3, pady=10)
 
     def setup_image_tab(self):
         tab = ttk.Frame(self.tabs)
         self.tabs.add(tab, text="🖼️ Bild")
         frame = self.setup_tab_common(tab, image.ALLOWED_OUTPUTS)
-        ttk.Button(frame, text="Konvertieren", command=self.convert_image).grid(row=1, column=0, columnspan=3, pady=10)
+        ttk.Button(frame, text="Konvertieren", command=self.convert_image).grid(row=2, column=0, columnspan=3, pady=10)
 
     def setup_pdf_tab(self):
         tab = ttk.Frame(self.tabs)
@@ -63,8 +66,13 @@ class FileMagicApp:
 
     def select_files(self):
         self.files = filedialog.askopenfilenames()
-        if self.files:
-            messagebox.showinfo("Dateien ausgewählt", f"{len(self.files)} Datei(en) gewählt.")
+        count = len(self.files)
+        if count == 0:
+            self.file_label.set("Keine Dateien ausgewählt")
+        elif count == 1:
+            self.file_label.set("1 Datei ausgewählt")
+        else:
+            self.file_label.set(f"{count} Dateien ausgewählt")
 
     def convert_audio(self):
         if self.files:
@@ -89,6 +97,8 @@ class FileMagicApp:
 
     def convert_pdf_split(self):
         self.files = filedialog.askopenfilenames(filetypes=[("PDF-Dateien", "*.pdf")])
+        count = len(self.files)
+        self.file_label.set(f"{count} PDF{'s' if count > 1 else ''} ausgewählt")
         if self.files:
             pdf.split_pdfs(self.files)
             messagebox.showinfo("Fertig", "PDF wurde aufgeteilt.")
@@ -97,6 +107,8 @@ class FileMagicApp:
 
     def convert_pdf_merge(self):
         self.files = filedialog.askopenfilenames(filetypes=[("PDF-Dateien", "*.pdf")])
+        count = len(self.files)
+        self.file_label.set(f"{count} PDF{'s' if count > 1 else ''} ausgewählt")
         if self.files:
             pdf.merge_pdfs(self.files)
             messagebox.showinfo("Fertig", "PDF wurde zusammengeführt.")
@@ -107,3 +119,4 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = FileMagicApp(root)
     root.mainloop()
+
