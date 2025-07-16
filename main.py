@@ -1,68 +1,74 @@
-import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
-import os
+import ttkbootstrap as tb
+from ttkbootstrap.constants import *
+from tkinter import filedialog, messagebox
 from converters import audio, video, image, pdf
 
 class FileMagicApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("File Magic – Konverter")
-        self.root.geometry("600x400")
-        self.root.resizable(False, False)
+        self.root.title("File Magic")
+        self.root.geometry("800x600")
+        self.root.minsize(640, 480)
+        self.root.resizable(True, True)
+        self.root.configure(background="#f0f0f0")
 
         self.files = []
-        self.target_format = tk.StringVar()
-        self.file_label = tk.StringVar(value="Keine Dateien ausgewählt")
+        self.target_format = tb.StringVar()
+        self.file_label = tb.StringVar(value="Keine Dateien ausgewählt")
 
-        self.tabs = ttk.Notebook(root)
-        self.tabs.pack(expand=True, fill="both")
+        # Tabs
+        self.tabs = tb.Notebook(root, bootstyle="secondary")
+        self.tabs.pack(padx=20, pady=20, expand=True, fill="both")
 
         self.setup_audio_tab()
         self.setup_video_tab()
         self.setup_image_tab()
         self.setup_pdf_tab()
 
+        # Footer
+        self.footer = tb.Label(root, text="File Magic © 2025", bootstyle="secondary", font=("Helvetica Neue", 10))
+        self.footer.pack(pady=5)
+
     def setup_tab_common(self, tab, formats):
-        frame = ttk.Frame(tab)
-        frame.pack(pady=10)
+        frame = tb.Frame(tab, padding=20)
+        frame.pack(expand=True, fill="both")
 
-        btn_select = ttk.Button(frame, text="Dateien auswählen", command=self.select_files)
-        btn_select.grid(row=0, column=0, padx=5)
+        tb.Button(frame, text="Dateien auswählen", bootstyle="outline", command=self.select_files).pack(pady=10)
 
-        ttk.Label(frame, text="Zielformat:").grid(row=0, column=1, padx=5)
-        format_menu = ttk.Combobox(frame, textvariable=self.target_format, values=list(formats), state="readonly")
-        format_menu.grid(row=0, column=2, padx=5)
-        format_menu.current(0)
+        tb.Label(frame, text="Zielformat:", font=("Helvetica Neue", 12)).pack()
+        tb.Combobox(frame, textvariable=self.target_format, values=list(formats),
+                    state="readonly", bootstyle="light").pack(pady=5)
 
-        ttk.Label(frame, textvariable=self.file_label).grid(row=1, column=0, columnspan=3, pady=5)
+        tb.Label(frame, textvariable=self.file_label, font=("Helvetica Neue", 10), foreground="#888").pack(pady=10)
 
         return frame
 
     def setup_audio_tab(self):
-        tab = ttk.Frame(self.tabs)
+        tab = tb.Frame(self.tabs)
         self.tabs.add(tab, text="🎧 Audio")
         frame = self.setup_tab_common(tab, audio.ALLOWED_OUTPUTS)
-        ttk.Button(frame, text="Konvertieren", command=self.convert_audio).grid(row=2, column=0, columnspan=3, pady=10)
+        tb.Button(frame, text="Konvertieren", bootstyle="success", command=self.convert_audio).pack(pady=10)
 
     def setup_video_tab(self):
-        tab = ttk.Frame(self.tabs)
+        tab = tb.Frame(self.tabs)
         self.tabs.add(tab, text="🎬 Video")
         frame = self.setup_tab_common(tab, video.ALLOWED_OUTPUTS)
-        ttk.Button(frame, text="Konvertieren", command=self.convert_video).grid(row=2, column=0, columnspan=3, pady=10)
+        tb.Button(frame, text="Konvertieren", bootstyle="success", command=self.convert_video).pack(pady=10)
 
     def setup_image_tab(self):
-        tab = ttk.Frame(self.tabs)
+        tab = tb.Frame(self.tabs)
         self.tabs.add(tab, text="🖼️ Bild")
         frame = self.setup_tab_common(tab, image.ALLOWED_OUTPUTS)
-        ttk.Button(frame, text="Konvertieren", command=self.convert_image).grid(row=2, column=0, columnspan=3, pady=10)
+        tb.Button(frame, text="Konvertieren", bootstyle="success", command=self.convert_image).pack(pady=10)
 
     def setup_pdf_tab(self):
-        tab = ttk.Frame(self.tabs)
+        tab = tb.Frame(self.tabs)
         self.tabs.add(tab, text="📄 PDF")
-        frame = ttk.Frame(tab)
-        frame.pack(pady=20)
-        ttk.Button(frame, text="PDF splitten", command=self.convert_pdf_split).pack(pady=5)
-        ttk.Button(frame, text="PDF zusammenfügen", command=self.convert_pdf_merge).pack()
+        frame = tb.Frame(tab, padding=20)
+        frame.pack(expand=True, fill="both")
+
+        tb.Button(frame, text="PDF splitten", bootstyle="warning", command=self.convert_pdf_split).pack(pady=10)
+        tb.Button(frame, text="PDF zusammenfügen", bootstyle="info", command=self.convert_pdf_merge).pack()
 
     def select_files(self):
         self.files = filedialog.askopenfilenames()
@@ -74,49 +80,38 @@ class FileMagicApp:
         else:
             self.file_label.set(f"{count} Dateien ausgewählt")
 
-    def convert_audio(self):
-        if self.files:
-            audio.convert(self.files, self.target_format.get())
-            messagebox.showinfo("Fertig", "Audio-Dateien wurden konvertiert.")
+    def run_conversion(self, convert_func):
+        if self.files and self.target_format.get():
+            for file in self.files:
+                convert_func([file], self.target_format.get())
+            messagebox.showinfo("Fertig", "Dateien wurden erfolgreich konvertiert.")
         else:
-            messagebox.showwarning("Fehler", "Bitte wähle Dateien aus.")
+            messagebox.showwarning("Fehler", "Bitte wähle Dateien und ein Zielformat aus.")
+
+    def convert_audio(self):
+        self.run_conversion(audio.convert)
 
     def convert_video(self):
-        if self.files:
-            video.convert(self.files, self.target_format.get())
-            messagebox.showinfo("Fertig", "Video-Dateien wurden konvertiert.")
-        else:
-            messagebox.showwarning("Fehler", "Bitte wähle Dateien aus.")
+        self.run_conversion(video.convert)
 
     def convert_image(self):
-        if self.files:
-            image.convert(self.files, self.target_format.get())
-            messagebox.showinfo("Fertig", "Bild-Dateien wurden konvertiert.")
-        else:
-            messagebox.showwarning("Fehler", "Bitte wähle Dateien aus.")
+        self.run_conversion(image.convert)
 
     def convert_pdf_split(self):
         self.files = filedialog.askopenfilenames(filetypes=[("PDF-Dateien", "*.pdf")])
-        count = len(self.files)
-        self.file_label.set(f"{count} PDF{'s' if count > 1 else ''} ausgewählt")
         if self.files:
-            pdf.split_pdfs(self.files)
-            messagebox.showinfo("Fertig", "PDF wurde aufgeteilt.")
-        else:
-            messagebox.showwarning("Fehler", "Bitte PDF-Datei auswählen.")
+            for file in self.files:
+                pdf.split(file)
+            messagebox.showinfo("Fertig", "PDFs wurden gesplittet.")
 
     def convert_pdf_merge(self):
         self.files = filedialog.askopenfilenames(filetypes=[("PDF-Dateien", "*.pdf")])
-        count = len(self.files)
-        self.file_label.set(f"{count} PDF{'s' if count > 1 else ''} ausgewählt")
         if self.files:
-            pdf.merge_pdfs(self.files)
-            messagebox.showinfo("Fertig", "PDF wurde zusammengeführt.")
-        else:
-            messagebox.showwarning("Fehler", "Bitte PDF-Dateien auswählen.")
+            pdf.merge(self.files)
+            messagebox.showinfo("Fertig", "PDFs wurden zusammengefügt.")
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = FileMagicApp(root)
-    root.mainloop()
-
+    app = tb.Window(themename="flatly") 
+    app.iconbitmap("appicon.ico") 
+    FileMagicApp(app)
+    app.mainloop()
