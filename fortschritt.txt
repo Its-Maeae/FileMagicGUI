@@ -1,0 +1,10 @@
+Was zu tun ist:
+- verhindern, dass falsche Dateiformate hochgeladen werden
+- Scrollfähigkeit bei Dateianzeige 
+- Download Ordner ändern (Einstellungsmenü zum selbständigen ändern)
+- Abrunden von Buttons
+- Hintergrund dunkler (Light/Dark mode)
+- Icon in Taskleiste
+- Cursor Pointer
+- Credits/Impressum
+- 
