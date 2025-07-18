@@ -100,15 +100,24 @@ class FileMagicApp:
     def convert_pdf_split(self):
         self.files = filedialog.askopenfilenames(filetypes=[("PDF-Dateien", "*.pdf")])
         if self.files:
-            for file in self.files:
-                pdf.split(file)
-            messagebox.showinfo("Fertig", "PDFs wurden gesplittet.")
+            try:
+                pdf.split_pdfs(self.files)
+                messagebox.showinfo("Fertig", "PDF wurde aufgeteilt.")
+            except Exception as e:
+                messagebox.showerror("Fehler", str(e))
 
     def convert_pdf_merge(self):
         self.files = filedialog.askopenfilenames(filetypes=[("PDF-Dateien", "*.pdf")])
+        count = len(self.files)
+        self.file_label.set(f"{count} PDF{'s' if count > 1 else ''} ausgewählt")
         if self.files:
-            pdf.merge(self.files)
-            messagebox.showinfo("Fertig", "PDFs wurden zusammengefügt.")
+            try:
+                pdf.merge_pdfs(self.files)  # <-- Aufruf der Funktion im Modul pdf.py
+                messagebox.showinfo("Fertig", "PDF wurde zusammengeführt.")
+            except Exception as e:
+                messagebox.showerror("Fehler", str(e))
+        else:
+            messagebox.showwarning("Fehler", "Bitte PDF-Dateien auswählen.")
 
 if __name__ == "__main__":
     app = tb.Window(themename="flatly") 
